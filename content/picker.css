@@ -1,0 +1,23 @@
+/*
+ * content/picker.css — the host container only.
+ *
+ * All the picker's actual UI lives inside a CLOSED shadow root, so its styles are written from
+ * picker.js into a <style> inside that root. Two reasons for the split: the host page's CSS
+ * cannot reach into a shadow root to restyle our overlay (sites with aggressive `div { ... }`
+ * rules would otherwise wreck it), and our styles cannot leak out onto the page.
+ *
+ * What is left here is the one thing that must be styled from outside: the host element itself,
+ * which the page CAN see and would otherwise inherit page styles.
+ */
+#dom-styler-picker-root {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483647 !important;
+  pointer-events: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  contain: layout style !important;
+  color-scheme: light dark;
+}

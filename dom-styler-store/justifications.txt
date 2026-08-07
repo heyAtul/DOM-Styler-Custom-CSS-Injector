@@ -1,0 +1,105 @@
+═══════════════════════════════════════════════════════════════════════════════
+PRIVACY PRACTICES TAB — paste each block into the matching box
+Every box has a 1,000-character limit. Counts are noted after each.
+═══════════════════════════════════════════════════════════════════════════════
+
+
+──────────────────────────────────────────────────────────────────── storage ──
+
+Stores the user's own CSS rules and preferences locally via chrome.storage.local.
+Each saved rule holds: the CSS text the user typed, a structural description of the
+element they selected (so the rule can be reapplied on later visits), the site scope
+they chose for it, and an enabled flag. The extension also stores two settings: a
+global on/off switch and the user's default match mode.
+
+Nothing else is stored. Nothing is transmitted anywhere — the extension makes no
+network requests at all, and there is no account, server, or sync.
+
+This permission is essential to the single purpose: without it the extension could
+not remember the rules the user creates, which is the entire function of the product.
+
+
+────────────────────────────────────────────────────────────────── scripting ──
+
+Used for two things, both essential to the single purpose.
+
+1. Injecting the element picker. When the user clicks "Pick element",
+chrome.scripting.executeScript and insertCSS inject content/picker.js and
+content/picker.css into the active tab. The picker is injected on demand rather than
+declared in the manifest so that it does not load on pages where the user is not
+actively picking.
+
+2. Activating on already-open tabs. A tab that was open before the extension was
+installed or reloaded has not run the manifest content scripts. The same API injects
+them on demand so the user does not have to reload every tab manually.
+
+Only files bundled inside the extension package are ever injected. No remote code,
+no generated code, and no strings are evaluated as JavaScript.
+
+
+──────────────────────────────────────────────────────── host permission ──────
+
+The user decides which websites to style, and that can be any website, so the set of
+hosts cannot be known ahead of time. That is why a broad match pattern is requested
+rather than a fixed list — a list would make the core feature impossible.
+
+The access is used for exactly two things:
+
+1. Reading a page's DOM structure in order to locate the one element the user
+selected with the picker, and to re-locate that same element on later visits after
+the site's markup has changed.
+
+2. Injecting a stylesheet containing the CSS that the user themselves wrote for
+that page.
+
+The extension makes no network requests of any kind. It never reads or transmits page
+text, form input, credentials, cookies, or browsing history. It has no analytics and
+no telemetry. Every rule stays in chrome.storage.local on the user's own machine, and
+the user can delete or export all of it at any time.
+
+
+─────────────────────────────────────────────────── remote code question ──────
+
+Select:  ●  No, I am not using remote code
+
+Verified in the package: no eval() and no new Function(); all ten <script src>
+references are relative paths to bundled files; the only importScripts call loads
+/lib/storage.js from the extension root; there is no WebAssembly; and there are no
+external URLs of any kind.
+
+(If a reviewer ever asks about chrome.devtools.inspectedWindow.eval in
+devtools/sidebar.js: that is the standard Chrome DevTools API every DevTools
+extension uses, and the string it evaluates is a literal that ships inside the
+package — no code is fetched or generated at runtime.)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+SETTINGS PAGE — the last two errors are account-level, not item-level
+═══════════════════════════════════════════════════════════════════════════════
+
+Left navigation → Settings (NOT the item's tabs)
+
+  1. Enter a publisher contact email.
+  2. Click the verify button; Google emails you a link. Open it.
+  3. Return to the item and click Save Draft, then Submit for review.
+
+Both errors ("must provide a contact email" / "must verify the publisher's contact
+email") clear only after the emailed link is opened. They are invisible from the
+listing form, which is why the submit button looked disabled for no reason.
+
+While on the Settings page, also confirm your trader status is declared — it is
+required under the EU Digital Services Act and blocks publishing if left unset.
+Choose non-trader if you are not selling anything.
+
+
+═══════════════════════════════════════════════════════════════════════════════
+ORDER OF OPERATIONS
+═══════════════════════════════════════════════════════════════════════════════
+
+  1. Privacy practices tab → switch remote code to "No"
+  2. Paste the three justifications above
+  3. Confirm the two data-usage certification checkboxes are ticked
+  4. Confirm the privacy policy URL is filled in (required — host PRIVACY-POLICY.md)
+  5. SAVE DRAFT                        ← nothing persists until you do this
+  6. Settings page → contact email → verify via the emailed link
+  7. Back to the item → Submit for review

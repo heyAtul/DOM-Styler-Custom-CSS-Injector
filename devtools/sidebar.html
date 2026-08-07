@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>DOM Styler</title>
+  <link rel="stylesheet" href="../popup/popup.css">
+  <link rel="stylesheet" href="sidebar.css">
+</head>
+<body class="sidebar">
+  <div id="sb-banner" class="banner" hidden></div>
+
+  <section id="sb-none" class="empty">
+    Select an element in the Elements tree.
+  </section>
+
+  <section id="sb-body" hidden>
+    <code id="sb-desc" class="desc"></code>
+    <div id="sb-meta" class="meta"></div>
+    <details id="sb-detail">
+      <summary>uniqueness data</summary>
+      <div id="sb-detail-body" class="detail"></div>
+    </details>
+
+    <textarea id="sb-css" rows="5" spellcheck="false"
+      placeholder="color: red; font-size: 20px&#10;&#10;&amp;:hover { opacity: .6 }"></textarea>
+    <div id="sb-error" class="err" hidden></div>
+
+    <div class="row">
+      <button id="sb-save" class="primary">Save rule</button>
+      <select id="sb-mode" title="Which pages this rule applies to">
+        <option value="host">this hostname</option>
+        <option value="domain">domain + subdomains</option>
+        <option value="url">this exact page</option>
+      </select>
+    </div>
+
+    <div class="rules-hd" style="margin-top:10px">
+      <span id="sb-count">Rules here</span>
+      <span class="spacer"></span>
+      <button id="sb-view-all" class="link" title="Open the full rules manager">view all</button>
+    </div>
+    <ul id="sb-list" class="list"></ul>
+  </section>
+
+  <div id="sb-toast" class="toast" hidden></div>
+
+  <script src="../lib/storage.js"></script>
+  <script src="../lib/css.js"></script>
+  <script src="sidebar.js"></script>
+</body>
+</html>

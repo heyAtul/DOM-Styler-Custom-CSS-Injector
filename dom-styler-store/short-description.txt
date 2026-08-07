@@ -1,0 +1,1 @@
+Custom CSS injector with a visual element picker. Style any site per domain — rules survive class and ID changes.

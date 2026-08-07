@@ -1,0 +1,42 @@
+Pick any element on any web page and apply your own custom CSS to it. Your styles are saved per domain and reapplied automatically on every visit — and they keep matching even after the site changes its class names and IDs.
+
+DOM Styler is a custom CSS injector and user-style editor with a visual element picker, built for people who want to fix, restyle, or clean up the sites they use every day.
+
+WHAT YOU CAN DO
+
+• Click to select any element — a hover picker with an ancestor breadcrumb, plus arrow-key navigation to move to the parent, child or sibling when the cursor lands on the wrong node.
+• Or select straight from DevTools — a "DOM Styler" pane in the Elements sidebar picks up whatever node you click in the DOM tree. Better for elements that are covered, zero-sized, or only exist while a menu is open.
+• Write plain declarations (color: red; font-size: 20px) or full rule blocks with pseudo-classes, descendants and media queries.
+• Live preview as you type, before you save anything.
+• Scope each rule to one hostname, a domain plus all its subdomains, or a single exact page.
+• Manage everything in one place: a full rules table with search, filters, sorting, multi-select, and bulk enable / disable / delete / export.
+• Export and import your whole rule set as JSON.
+
+WHY YOUR RULES KEEP WORKING
+
+Most CSS-injection tools store a selector and break the moment the site ships a redesign. DOM Styler stores a selector AND a fingerprint of the element — its parent, grandparent and further ancestors, its siblings, its text, its stable attributes, and its position among like elements.
+
+It also refuses to trust an ID just because one exists. Framework-generated IDs like :r7:, mui-42, ember1234, cdk-overlay-0 and radix-* change on every page load, so they are detected and ranked below the structural fingerprint. Hashed class names from CSS Modules, emotion, styled-components, Svelte and Vue are recognised and ignored the same way.
+
+And when the page has genuinely changed too much to be sure, it stops rather than guessing. If two elements match equally well, the rule reports "ambiguous" and applies nothing — because silently restyling the wrong element is worse than not applying at all. The rules table tells you exactly which rules are landing, at what confidence, and why any of them are not.
+
+PRIVACY
+
+• No accounts, no sign-in, no telemetry, no analytics.
+• Nothing is ever sent anywhere. There are zero network requests in the entire extension.
+• Everything lives in chrome.storage.local on your own machine.
+• No remote code — all logic ships inside the extension package.
+• CSS you write cannot reach the network either: @import and remote url() are rejected, and only data: URIs are allowed.
+
+WHY IT ASKS FOR ACCESS TO ALL SITES
+
+You decide which sites to style, and that can be any site, so access cannot be scoped in advance. The extension reads a page's structure only to find the element you picked, and writes only the CSS you wrote. It never reads or transmits page content, form data, or browsing history.
+
+KNOWN LIMITS (stated up front)
+
+• Elements inside cross-origin iframes are not supported. Picking the iframe element itself works.
+• Closed shadow roots are refused at pick time, with an explanation, rather than saved as a rule that could never match again.
+• Several truly identical anonymous siblings — no ID, no classes, no attributes, no text — carry no information beyond their position. If one is inserted above your target, the rule can land on the wrong one. Pick a parent with an ID instead.
+• chrome:// pages, other extensions' pages and the Chrome Web Store are off-limits to all extensions, so nothing can be styled there.
+
+Open source, no build step, no dependencies.

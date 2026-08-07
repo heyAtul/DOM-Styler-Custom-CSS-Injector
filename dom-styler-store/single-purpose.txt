@@ -1,0 +1,1 @@
+Apply user-defined CSS to elements the user selects on websites they choose.

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>DOM Styler</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="hd">
+    <div class="hd-main">
+      <strong>DOM Styler</strong>
+      <span id="scope" class="scope" title="">—</span>
+    </div>
+    <label class="sw" title="Turn all styling on or off everywhere">
+      <input type="checkbox" id="global-enabled">
+      <span>on</span>
+    </label>
+  </header>
+
+  <div id="banner" class="banner" hidden></div>
+
+  <section class="pick">
+    <button id="pick-btn" class="primary">Pick element</button>
+    <select id="match-mode" title="Which pages this rule applies to">
+      <option value="host">this hostname</option>
+      <option value="domain">this domain + subdomains</option>
+      <option value="url">this exact page</option>
+    </select>
+  </section>
+
+  <!-- Shown only when a capture is waiting -->
+  <section id="capture" class="card" hidden>
+    <div class="card-hd">
+      <span class="card-title">Selected element</span>
+      <button id="capture-discard" class="link">discard</button>
+    </div>
+    <code id="capture-desc" class="desc"></code>
+    <div id="capture-meta" class="meta"></div>
+    <details id="capture-detail">
+      <summary>uniqueness data</summary>
+      <div id="capture-detail-body" class="detail"></div>
+    </details>
+    <textarea id="css-input" rows="6" spellcheck="false"
+      placeholder="color: red; font-size: 20px&#10;&#10;or with blocks:&#10;&amp;:hover { opacity: .6 }&#10;.child { margin: 0 }"></textarea>
+    <div id="css-error" class="err" hidden></div>
+    <div class="row">
+      <button id="save-btn" class="primary">Save rule</button>
+      <span class="hint">⌘/Ctrl + Enter</span>
+    </div>
+  </section>
+
+  <section class="rules">
+    <div class="rules-hd">
+      <span id="rules-count">Rules</span>
+      <span class="spacer"></span>
+      <button id="view-all-btn" class="link" title="Open the full rules manager">view all</button>
+      <button id="export-btn" class="link" title="Download all rules as JSON">export</button>
+      <button id="import-btn" class="link" title="Load rules from a JSON file">import</button>
+      <input type="file" id="import-file" accept="application/json,.json" hidden>
+    </div>
+    <ul id="rules-list" class="list"></ul>
+    <p id="rules-empty" class="empty">No rules for this page yet. Pick an element to add one.</p>
+  </section>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="../lib/storage.js"></script>
+  <script src="../lib/css.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

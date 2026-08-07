@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>DOM Styler — all rules</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <header class="top">
+    <h1>DOM Styler</h1>
+    <span id="summary" class="summary"></span>
+    <span class="spacer"></span>
+    <label class="sw" title="Turn all styling on or off everywhere">
+      <input type="checkbox" id="global-enabled">
+      <span>styling on</span>
+    </label>
+    <button id="export-all">Export all</button>
+    <button id="import-all">Import</button>
+    <input type="file" id="import-file" accept="application/json,.json" hidden>
+  </header>
+
+  <div id="banner" class="banner" hidden></div>
+
+  <section class="filters">
+    <input type="search" id="f-text" placeholder="Search element, CSS, or site…" autocomplete="off">
+    <select id="f-scope"><option value="">All sites</option></select>
+    <select id="f-mode">
+      <option value="">Any match mode</option>
+      <option value="host">hostname</option>
+      <option value="domain">domain + subdomains</option>
+      <option value="url">exact page</option>
+    </select>
+    <select id="f-enabled">
+      <option value="">Enabled &amp; disabled</option>
+      <option value="on">Enabled only</option>
+      <option value="off">Disabled only</option>
+    </select>
+    <select id="f-status">
+      <option value="">Any status</option>
+      <option value="ok">Was matching</option>
+      <option value="bad">Was not matching</option>
+      <option value="unknown">Never checked</option>
+    </select>
+    <button id="f-clear" class="link">clear filters</button>
+  </section>
+
+  <div id="bulk" class="bulk" hidden>
+    <strong id="bulk-count"></strong>
+    <button id="bulk-enable">Enable</button>
+    <button id="bulk-disable">Disable</button>
+    <button id="bulk-export">Export selected</button>
+    <button id="bulk-delete" class="danger">Delete</button>
+    <button id="bulk-clear" class="link">deselect</button>
+  </div>
+
+  <table class="grid">
+    <thead>
+      <tr>
+        <th class="col-cb"><input type="checkbox" id="select-all" title="Select all shown"></th>
+        <th class="col-on">On</th>
+        <th class="sortable" data-sort="scope">Site</th>
+        <th class="sortable" data-sort="label">Element</th>
+        <th class="sortable" data-sort="css">CSS</th>
+        <th class="sortable" data-sort="status">Last seen</th>
+        <th class="sortable" data-sort="updatedAt">Updated</th>
+        <th class="col-act"></th>
+      </tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
+
+  <p id="empty" class="empty" hidden></p>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="../lib/storage.js"></script>
+  <script src="../lib/css.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>
