@@ -246,7 +246,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 /* ---------------------------------------------------------------- lifecycle */
 
 chrome.runtime.onInstalled.addListener(() => {
-  Storage.ensureDefaults().catch((e) => console.warn('[DOM Styler] init failed', e));
+  Storage.ensureDefaults().catch((e) => console.warn('[Custom CSS Injector] init failed', e));
   setBadge('');
 });
 

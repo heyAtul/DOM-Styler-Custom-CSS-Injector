@@ -1,11 +1,11 @@
 Pick any element on any web page and apply your own custom CSS to it. Your styles are saved per domain and reapplied automatically on every visit — and they keep matching even after the site changes its class names and IDs.
 
-DOM Styler is a custom CSS injector and user-style editor with a visual element picker, built for people who want to fix, restyle, or clean up the sites they use every day.
+A user-style editor with a visual element picker, built for people who want to fix, restyle, or clean up the sites they use every day.
 
 WHAT YOU CAN DO
 
 • Click to select any element — a hover picker with an ancestor breadcrumb, plus arrow-key navigation to move to the parent, child or sibling when the cursor lands on the wrong node.
-• Or select straight from DevTools — a "DOM Styler" pane in the Elements sidebar picks up whatever node you click in the DOM tree. Better for elements that are covered, zero-sized, or only exist while a menu is open.
+• Or select straight from DevTools — a "Custom CSS Injector" pane in the Elements sidebar picks up whatever node you click in the DOM tree. Better for elements that are covered, zero-sized, or only exist while a menu is open.
 • Write plain declarations (color: red; font-size: 20px) or full rule blocks with pseudo-classes, descendants and media queries.
 • Live preview as you type, before you save anything.
 • Scope each rule to one hostname, a domain plus all its subdomains, or a single exact page.
@@ -14,7 +14,7 @@ WHAT YOU CAN DO
 
 WHY YOUR RULES KEEP WORKING
 
-Most CSS-injection tools store a selector and break the moment the site ships a redesign. DOM Styler stores a selector AND a fingerprint of the element — its parent, grandparent and further ancestors, its siblings, its text, its stable attributes, and its position among like elements.
+Most CSS-injection tools store a selector and break the moment the site ships a redesign. This one stores a selector AND a fingerprint of the element — its parent, grandparent and further ancestors, its siblings, its text, its stable attributes, and its position among like elements.
 
 It also refuses to trust an ID just because one exists. Framework-generated IDs like :r7:, mui-42, ember1234, cdk-overlay-0 and radix-* change on every page load, so they are detected and ranked below the structural fingerprint. Hashed class names from CSS Modules, emotion, styled-components, Svelte and Vue are recognised and ignored the same way.
 

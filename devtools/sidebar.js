@@ -1,5 +1,5 @@
 /*
- * devtools/sidebar.js — the "DOM Styler" pane in the Elements sidebar.
+ * devtools/sidebar.js — the "Custom CSS Injector" pane in the Elements sidebar.
  *
  * HOW $0 CROSSES WORLDS
  *
@@ -137,7 +137,7 @@
     const res = await toWorker({ type: 'DS_DEVTOOLS_CAPTURE', tabId, attr: PICK_ATTR });
 
     if (!res || !res.ok) {
-      const why = (res && res.error) || 'the page has no DOM Styler content script yet';
+      const why = (res && res.error) || 'the page has no Custom CSS Injector content script yet';
       showNone('Could not capture that element: ' + why + '. Reload the page and try again.');
       return;
     }

@@ -48,7 +48,7 @@ body {
   border-bottom: 1px solid var(--line);
 }
 .hd-main { display: flex; align-items: baseline; gap: 7px; min-width: 0; flex: 1; }
-.hd strong { font-size: 13px; }
+.hd strong { font-size: 13px; white-space: nowrap; flex: none; }
 .scope {
   font-family: var(--mono); font-size: 11px; color: var(--dim);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;

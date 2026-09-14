@@ -511,7 +511,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'dom-styler-rules.json';
+      a.download = 'custom-css-injector-rules.json';
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -546,7 +546,7 @@
   }
 
   init().catch((e) => {
-    banner('DOM Styler failed to start: ' + e.message, true);
+    banner('Custom CSS Injector failed to start: ' + e.message, true);
     console.error(e);
   });
 })();

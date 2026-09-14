@@ -7,16 +7,18 @@ against the form limits (see `verify-counts.py` output at the bottom of this fil
 
 ## 1. Name  ← the single biggest SEO lever
 
-The item name carries more ranking weight in Web Store search than any other text field. Plain
-`DOM Styler` contains **no** term anyone searches for, so it ranks for nothing but the brand.
+The item name carries more ranking weight in Web Store search than any other text field.
 
-Pick one (all under 45 chars so nothing truncates in search results):
+**Current name: `Custom CSS Injector`** (19 chars) — the highest-volume query for this category,
+used verbatim as the name. No separate brand word.
+
+Alternatives considered, kept here for reference:
 
 | Option | Chars | Notes |
 |---|---|---|
-| `DOM Styler – Custom CSS Injector` | 32 | **Recommended.** Brand + the highest-volume query. |
-| `DOM Styler – Custom CSS Editor & Injector` | 41 | Covers "editor" and "injector" both. |
-| `Custom CSS Injector – DOM Styler` | 32 | Keyword first. Ranks slightly better, weaker brand. |
+| `Custom CSS Injector` | 19 | **In use.** Pure keyword match, nothing to truncate. |
+| `Custom CSS Injector & Editor` | 28 | Covers "editor" as well. |
+| `Custom CSS Injector – Element Picker` | 35 | Adds the differentiating feature. |
 
 Hard limit is 75 characters, but the store truncates around 45 in several surfaces.
 
@@ -60,7 +62,7 @@ Pick any element on any web page and apply your own custom CSS to it. Your style
 domain and reapplied automatically on every visit — and they keep matching even after the site
 changes its class names and IDs.
 
-DOM Styler is a custom CSS injector and user-style editor with a visual element picker, built for
+A user-style editor with a visual element picker, built for
 people who want to fix, restyle, or clean up the sites they use every day.
 
 
@@ -68,7 +70,7 @@ WHAT YOU CAN DO
 
 • Click to select any element — a hover picker with an ancestor breadcrumb, plus arrow-key
   navigation to move to the parent, child or sibling when the cursor lands on the wrong node.
-• Or select straight from DevTools — a "DOM Styler" pane in the Elements sidebar picks up whatever
+• Or select straight from DevTools — a "Custom CSS Injector" pane in the Elements sidebar picks up whatever
   node you click in the DOM tree. Better for elements that are covered, zero-sized, or only exist
   while a menu is open.
 • Write plain declarations (color: red; font-size: 20px) or full rule blocks with pseudo-classes,
@@ -82,7 +84,7 @@ WHAT YOU CAN DO
 
 WHY YOUR RULES KEEP WORKING
 
-Most CSS-injection tools store a selector and break the moment the site ships a redesign. DOM Styler
+Most CSS-injection tools store a selector and break the moment the site ships a redesign. This one
 stores a selector AND a fingerprint of the element — its parent, grandparent and further ancestors,
 its siblings, its text, its stable attributes, and its position among like elements.
 
@@ -238,8 +240,8 @@ extension makes zero network requests.
 
 Ranked by real impact on Web Store search:
 
-1. **The name.** Heaviest signal by a wide margin. This is why `DOM Styler` alone is a bad idea and
-   `DOM Styler – Custom CSS Injector` is not.
+1. **The name.** Heaviest signal by a wide margin. This is why the name is the search term itself,
+   `Custom CSS Injector`, rather than an invented brand word.
 2. **Short description.** Indexed, and it is the copy shown in results — so it drives both ranking
    and click-through.
 3. **First ~200 chars of the description.** Weighted more than the rest; put your keywords there

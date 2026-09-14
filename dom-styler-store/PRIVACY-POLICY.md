@@ -1,8 +1,8 @@
-# Privacy Policy — DOM Styler
+# Privacy Policy — Custom CSS Injector
 
 _Last updated: 7 August 2026_
 
-DOM Styler does not collect, transmit, or share any data.
+Custom CSS Injector does not collect, transmit, or share any data.
 
 ## What the extension stores
 

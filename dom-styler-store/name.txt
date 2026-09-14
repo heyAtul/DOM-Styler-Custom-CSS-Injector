@@ -1,1 +1,1 @@
-DOM Styler – Custom CSS Injector
+Custom CSS Injector

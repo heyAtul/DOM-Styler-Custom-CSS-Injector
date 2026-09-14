@@ -20,7 +20,7 @@
 
   const Engine = NS.SelectorEngine;
   if (!Engine) {
-    console.warn('[DOM Styler] picker: selector engine missing');
+    console.warn('[Custom CSS Injector] picker: selector engine missing');
     return;
   }
 
@@ -381,7 +381,7 @@
     try {
       fp = Engine.capture(el);
     } catch (err) {
-      console.warn('[DOM Styler] capture threw', err);
+      console.warn('[Custom CSS Injector] capture threw', err);
       renderHint('capture failed: ' + err.message);
       return;
     }
@@ -418,7 +418,7 @@
         void chrome.runtime.lastError;
       });
     } catch (err) {
-      console.warn('[DOM Styler] could not report the pick', err);
+      console.warn('[Custom CSS Injector] could not report the pick', err);
     }
   }
 

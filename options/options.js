@@ -540,7 +540,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = ids && ids.length ? 'dom-styler-selected.json' : 'dom-styler-rules.json';
+      a.download = ids && ids.length ? 'custom-css-injector-selected.json' : 'custom-css-injector-rules.json';
       document.body.appendChild(a);
       a.click();
       a.remove();

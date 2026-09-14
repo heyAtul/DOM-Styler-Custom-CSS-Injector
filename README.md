@@ -1,4 +1,4 @@
-# DOM Styler – Custom CSS Injector
+# Custom CSS Injector
 
 Pick any element on a page, write CSS for it, and have that CSS reapplied every time you visit —
 even after the site changes its ids and class names.
@@ -26,7 +26,7 @@ There are no network requests anywhere in the extension, and no remote code.
 
 1. Open `chrome://extensions`
 2. Turn on **Developer mode** (top right)
-3. **Load unpacked** → select this `dom-styler/` folder
+3. **Load unpacked** → select this folder
 
 Pin it to the toolbar.
 
@@ -44,7 +44,7 @@ the content scripts into that tab on demand and tells you if it had to.
 
 ### From DevTools (Elements panel)
 
-Open DevTools → **Elements** → the **DOM Styler** pane in the right-hand sidebar (next to Styles,
+Open DevTools → **Elements** → the **Custom CSS Injector** pane in the right-hand sidebar (next to Styles,
 Computed, Layout). Click any node in the Elements tree and the pane fills in immediately — the
 uniqueness breakdown, a CSS box that previews live as you type, and the rules already saved for this
 page. Selecting a different node updates it.

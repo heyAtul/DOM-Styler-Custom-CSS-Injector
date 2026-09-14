@@ -24,7 +24,7 @@
   const Engine = NS.SelectorEngine;
 
   if (!Storage || !Css || !Engine) {
-    console.warn('[DOM Styler] applier: dependencies missing, standing down');
+    console.warn('[Custom CSS Injector] applier: dependencies missing, standing down');
     return;
   }
 
@@ -269,7 +269,7 @@
     try {
       fn();
     } catch (e) {
-      console.warn('[DOM Styler] apply failed', e);
+      console.warn('[Custom CSS Injector] apply failed', e);
     } finally {
       paused--;
       if (observer && paused === 0) {
@@ -382,7 +382,7 @@
         stamped = new Map();
       }
     } catch (e) {
-      console.warn('[DOM Styler] failed to load rules', e);
+      console.warn('[Custom CSS Injector] failed to load rules', e);
       return;
     }
 
