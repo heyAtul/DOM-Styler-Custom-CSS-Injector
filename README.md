@@ -187,14 +187,19 @@ The fingerprint cannot be expressed as a CSS selector, so:
 
 1. **At `document_start`**, rules whose best selector is a plain, unambiguous, non-positional one
    are injected as raw CSS immediately. No flash of unstyled content for the common case.
-2. **Once the DOM exists**, every rule is resolved in JS, the winner is stamped with
+2. **As the DOM is built**, every rule is resolved in JS, the winner is stamped with
    `data-dom-styler="<ruleId>"`, and the real stylesheet targets that stamp. The stage-1 sheet is
    then dropped so it cannot disagree with the verified result.
 
-A debounced `MutationObserver` plus `pushState`/`replaceState`/`popstate` hooks keep everything
-applied through SPA re-renders and route changes. The observer is disconnected across the
-extension's own writes and its queue drained, so stamping an attribute cannot retrigger the
-observer that caused it.
+A `MutationObserver`, started as soon as a page's rules load, re-applies in the animation frame
+after each change, before the browser paints it, so an element is styled from its first frame
+whether the parser or the page's own scripts inserted it. Each pass is followed by a pause
+proportional to what it cost, which bounds the work on pages that never stop mutating. The
+expensive fallback search waits for `DOMContentLoaded` and backs off over time for rules that keep
+missing; the cheap selector lookups run on every pass. Together with
+`pushState`/`replaceState`/`popstate` hooks, this keeps everything applied through SPA re-renders
+and route changes. The observer is disconnected across the extension's own writes and its queue
+drained, so stamping an attribute cannot retrigger the observer that caused it.
 
 ## Scope and match modes
 

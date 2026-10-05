@@ -47,7 +47,7 @@
     AMBIGUITY_MARGIN: 2,   // raw points; closer than this between 1st and 2nd => ambiguous
     MIN_SIGNAL: 25,        // raw applicable points below which we demand exact structure
     FULL_REVERIFY_EVERY: 20,
-    BACKOFF: [1, 2, 4, 8, 16, 32],
+    BACKOFF_MS: [500, 1000, 2000, 4000, 8000, 16000],
   };
 
   const NS_HTML = 'http://www.w3.org/1999/xhtml';
@@ -828,7 +828,7 @@
 
   /* ------------------------------------------------------------------ resolution */
 
-  const cache = new Map(); // ruleId -> { ref, misses, skipUntil, lastFull }
+  const cache = new Map(); // ruleId -> { ref, misses, retryAt, lastFull }
 
   function resolveRoot(fp) {
     if (!fp.hosts) return document;
@@ -842,13 +842,17 @@
   }
 
   /**
-   * resolve(fp, { ruleId, batch, probe }) -> { el, score, via } | { el: null, reason }
+   * resolve(fp, { ruleId, batch, probe, deferSearch }) -> { el, score, via } | { el: null, reason }
    * Three tiers, each with an early exit. Nothing scans the whole document except the
    * explicitly capped tier-3 fallback.
    *
    * probe: true makes the call read-only — no cache write, no miss bookkeeping, no backoff.
    * The popup's status query uses it, so that merely LOOKING at a rule's match state cannot
    * push out the applier's retry schedule for that rule.
+   *
+   * deferSearch: true skips tier 3 for this call, reporting BACKOFF, without counting a miss.
+   * The applier sets it until DOMContentLoaded: on a half-built DOM a miss mostly means "not
+   * parsed yet", and the scan would only hold up the parser.
    */
   function resolve(fp, opts) {
     const o = opts || {};
@@ -863,10 +867,10 @@
     }
 
     const entry = cache.get(ruleId);
+    const searchHeld = !!o.deferSearch || (!!entry && performance.now() < entry.retryAt);
 
     // TIER 0 — cache. This is the path taken on nearly every mutation batch.
     if (entry) {
-      if (batch < entry.skipUntil) return { el: null, reason: 'BACKOFF' };
       const el = entry.ref.deref();
       if (el && quickVerify(el, fp)) {
         if (batch - entry.lastFull >= C.FULL_REVERIFY_EVERY) {
@@ -882,7 +886,7 @@
     }
 
     const root = resolveRoot(fp);
-    if (!root) return miss(ruleId, batch, 'SHADOW_UNREACHABLE');
+    if (!root) return searchHeld ? { el: null, reason: 'BACKOFF' } : miss(ruleId, 'SHADOW_UNREACHABLE');
 
     // TIER 1 — id fast path.
     if (fp.idOk && fp.id) {
@@ -938,7 +942,9 @@
     }
     if (remembered) return accept(ruleId, batch, remembered, rememberedR, 'sel-ambiguous');
 
-    // TIER 3 — bounded scored search. Only reached when the page genuinely changed.
+    // TIER 3 — bounded scored search. Only reached when the page genuinely changed, and the only
+    // tier that can be held back: by the miss backoff (see miss()), or by deferSearch.
+    if (searchHeld) return { el: null, reason: 'BACKOFF' };
     const searched = searchTier(fp, root, ruleId, batch);
     if (searched.el) return searched;
     if (drifted) return accept(ruleId, batch, drifted, driftedR, 'sel-text-drift');
@@ -1003,20 +1009,20 @@
       }
     }
 
-    if (!best) return miss(ruleId, batch, 'NO_MATCH');
+    if (!best) return miss(ruleId, 'NO_MATCH');
 
     const floor = lowConfidence ? C.ACCEPT_LOWCONF : C.ACCEPT_SEARCH;
-    if (bestD.ratio < floor) return miss(ruleId, batch, 'LOW_CONFIDENCE');
+    if (bestD.ratio < floor) return miss(ruleId, 'LOW_CONFIDENCE');
 
     // An anonymous, textless, classless element whose only evidence is position must match
     // structure exactly; a ratio would be meaningless on so little signal.
     if (bestD.max < C.MIN_SIGNAL) {
-      if (!exactStructure(best, fp)) return miss(ruleId, batch, 'WEAK_FINGERPRINT');
+      if (!exactStructure(best, fp)) return miss(ruleId, 'WEAK_FINGERPRINT');
     }
 
     if (secondRaw >= 0 && bestD.raw - secondRaw < C.AMBIGUITY_MARGIN) {
       const won = tiebreak(best, fp, list, examined, lowConfidence);
-      if (!won) return miss(ruleId, batch, 'AMBIGUOUS');
+      if (!won) return miss(ruleId, 'AMBIGUOUS');
       best = won;
     }
 
@@ -1069,20 +1075,24 @@
 
   function accept(ruleId, batch, el, ratio, via) {
     if (ruleId) {
-      cache.set(ruleId, { ref: new WeakRef(el), misses: 0, skipUntil: 0, lastFull: batch });
+      cache.set(ruleId, { ref: new WeakRef(el), misses: 0, retryAt: 0, lastFull: batch });
     }
     return { el, score: ratio, via };
   }
 
   /*
    * Exponential backoff on repeated misses stops a virtualized list from burning a 500-node
-   * scan on every one of hundreds of mutation batches. Reset on any route change.
+   * scan on every one of hundreds of mutation batches. It is timed in milliseconds rather than
+   * counted in batches, because batches can arrive every frame. And it holds back only that
+   * scan: tiers 0-2 are a handful of selector lookups and still run every batch, so an element is
+   * picked up in the batch that inserts it rather than whenever the window next opens — which,
+   * once the page goes quiet, may be never. Reset on any route change.
    */
-  function miss(ruleId, batch, reason) {
+  function miss(ruleId, reason) {
     if (ruleId) {
-      const e = cache.get(ruleId) || { ref: new WeakRef({}), misses: 0, skipUntil: 0, lastFull: 0 };
+      const e = cache.get(ruleId) || { ref: new WeakRef({}), misses: 0, retryAt: 0, lastFull: 0 };
       e.misses++;
-      e.skipUntil = batch + C.BACKOFF[Math.min(e.misses - 1, C.BACKOFF.length - 1)];
+      e.retryAt = performance.now() + C.BACKOFF_MS[Math.min(e.misses - 1, C.BACKOFF_MS.length - 1)];
       cache.set(ruleId, e);
     }
     return { el: null, reason };
@@ -1094,7 +1104,7 @@
   }
 
   function resetBackoff() {
-    for (const e of cache.values()) { e.misses = 0; e.skipUntil = 0; }
+    for (const e of cache.values()) { e.misses = 0; e.retryAt = 0; }
   }
 
   function reset() {

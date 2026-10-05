@@ -6,7 +6,7 @@
  *
  * Two-stage injection, to avoid a flash of unstyled content:
  *   stage 1 (now, before <head> exists)  raw selectors for rules whose selector is plain and safe
- *   stage 2 (DOM ready + every mutation) JS-resolved elements, stamped and styled by marker
+ *   stage 2 (each frame the DOM changed) JS-resolved elements, stamped and styled by marker
  *
  * Stage 2 exists because the fingerprint — parent, grandparent, siblings, text, scoring — cannot
  * be expressed as a CSS selector. So we resolve in JS, stamp data-dom-styler on the winner, and
@@ -34,7 +34,8 @@
   const MARKER = 'data-dom-styler';
   const PREVIEW_RULE_ID = 'preview';
 
-  const DEBOUNCE_MS = 150;
+  const PASS_GAP_FACTOR = 8;      // see schedulePass
+  const PASS_GAP_MAX_MS = 100;
   const DIAG_THROTTLE_MS = 5000;
 
   /* An XML or image document has no head to inject into and no page to style. */
@@ -46,11 +47,14 @@
   let stamped = new Map();        // ruleId -> Element currently carrying the marker
   let batch = 0;
   let observer = null;
-  let debounceTimer = null;
+  let passPending = false;
+  let nextPassAt = 0;             // performance.now() before which no scheduled pass may start
+  let domLoaded = document.readyState !== 'loading';   // see deferSearch in selector-engine.js
   let previewCss = null;
   let previewRecord = null;
   let lastDiagWrite = 0;
-  let diagPending = new Map();   // ruleId -> { scopeKey, info }
+  let diagTimer = null;
+  let diagPending = new Map();   // ruleId -> { rule, info }
 
   /* ---------------------------------------------------------------- style plumbing */
 
@@ -131,7 +135,7 @@
           releaseStamp(rule.id);
           continue;
         }
-        const res = Engine.resolve(rule.fingerprint, { ruleId: rule.id, batch });
+        const res = Engine.resolve(rule.fingerprint, { ruleId: rule.id, batch, deferSearch: !domLoaded });
 
         if (!res.el) {
           if (res.reason !== 'BACKOFF') {
@@ -221,23 +225,40 @@
 
   function queueDiag(rule, info) {
     const prev = rule.lastResolved;
-    // Only worth a write if the outcome actually changed.
+    // Only worth a write if the outcome actually changed. An outcome that changed back also
+    // cancels the write still waiting out the throttle, or that stale outcome would be recorded.
     if (prev && prev.matched === info.matched && prev.via === (info.via || null)
-        && prev.reason === (info.reason || null)) return;
-    diagPending.set(rule.id, { scopeKey: rule.scopeKey, info });
+        && prev.reason === (info.reason || null)) {
+      diagPending.delete(rule.id);
+      return;
+    }
+    diagPending.set(rule.id, { rule, info });
   }
 
   function flushDiag() {
     if (!diagPending.size) return;
+    // While the parser is still adding elements, a miss mostly means "not parsed yet". The pass
+    // at DOMContentLoaded flushes.
+    if (document.readyState === 'loading') return;
     const now = Date.now();
-    if (now - lastDiagWrite < DIAG_THROTTLE_MS) return;
+    const wait = DIAG_THROTTLE_MS - (now - lastDiagWrite);
+    if (wait > 0) {
+      // Flush when the window closes even if the page has gone quiet and no pass comes along.
+      if (!diagTimer) diagTimer = setTimeout(() => { diagTimer = null; flushDiag(); }, wait);
+      return;
+    }
     lastDiagWrite = now;
     const pending = diagPending;
     diagPending = new Map();
+    // Mirror the write in memory, so later passes compare against it rather than against what
+    // storage held at load time, and do not queue the same write again every throttle window.
+    for (const { rule, info } of pending.values()) {
+      rule.lastResolved = { matched: info.matched, via: info.via || null, reason: info.reason || null };
+    }
     (async () => {
-      for (const [ruleId, { scopeKey, info }] of pending) {
+      for (const { rule, info } of pending.values()) {
         try {
-          await Storage.setLastResolved(scopeKey, ruleId, info);
+          await Storage.setLastResolved(rule.scopeKey, rule.id, info);
         } catch (e) { /* diagnostics are best-effort */ }
       }
     })();
@@ -303,13 +324,36 @@
 
   function onMutation(records) {
     if (paused > 0) return;
+    if (!rules.length && previewCss === null) return;
     if (!relevant(records)) return;
-    if (debounceTimer) clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => {
-      debounceTimer = null;
-      // The page may have ripped our style element out; apply() recreates it.
-      apply();
-    }, DEBOUNCE_MS);
+    schedulePass();
+  }
+
+  /*
+   * Re-apply in the next animation frame: after the mutation, but before the browser paints it,
+   * so an element the page just inserted is never shown unstyled. A trailing debounce here kept
+   * postponing the pass for as long as the page kept mutating — on a busy page, indefinitely.
+   *
+   * A pass is cheap while every rule hits the tier-0 cache, not while several rules miss on a
+   * large DOM. So each pass is followed by a gap proportional to what it cost, which holds the
+   * applier to about a ninth of the main thread however often the page mutates, while never
+   * waiting longer than PASS_GAP_MAX_MS.
+   */
+  function schedulePass() {
+    if (passPending) return;
+    passPending = true;
+    const wait = nextPassAt - performance.now();
+    if (wait > 0) setTimeout(() => requestAnimationFrame(runPass), wait);
+    else requestAnimationFrame(runPass);
+  }
+
+  function runPass() {
+    passPending = false;
+    const t0 = performance.now();
+    // The page may have ripped our style element out; apply() recreates it.
+    apply();
+    const t1 = performance.now();
+    nextPassAt = t1 + Math.min(PASS_GAP_MAX_MS, (t1 - t0) * PASS_GAP_FACTOR);
   }
 
   function observe() {
@@ -356,7 +400,12 @@
 
   async function load() {
     try {
-      const settings = await Storage.getSettings();
+      // In parallel, one storage call each: on a reload this read is all that stands between
+      // document_start and the first injected rule.
+      const [settings, fetched] = await Promise.all([
+        Storage.getSettings(),
+        Storage.getRulesForUrl(location.href),
+      ]);
       if (!settings.enabled) {
         rules = [];
         withObserverPaused(() => {
@@ -366,7 +415,6 @@
         removeStyle(STYLE_MAIN_ID);
         return;
       }
-      const fetched = await Storage.getRulesForUrl(location.href);
       // Rule ids can change out from under the cache when rules are edited.
       const seen = new Set(fetched.map((r) => r.id));
       for (const id of Array.from(stamped.keys())) {
@@ -388,6 +436,11 @@
 
     if (!document.documentElement) return;
 
+    // Watch from the moment there is something to keep applied. On a reload that is while the
+    // parser is still building the page, so each element is stamped as it arrives instead of
+    // all of them at DOMContentLoaded.
+    if (rules.length) observe();
+
     if (!document.body) {
       // Still at document_start: emit what pure CSS can express, then wait for the DOM.
       const fast = fastPathCss(rules);
@@ -403,11 +456,10 @@
 
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
-        observe();
+        // Rules still missing get their first full search now, on the complete DOM.
+        domLoaded = true;
         load();
       }, { once: true });
-    } else {
-      observe();
     }
     window.addEventListener('load', () => load(), { once: true });
   }
@@ -426,6 +478,7 @@
       case 'DS_PREVIEW':
         previewCss = typeof msg.css === 'string' ? msg.css : '';
         previewRecord = msg.fingerprint || previewRecord;
+        observe();    // a page with no saved rules is not being watched yet
         applyPreview();
         sendResponse({ ok: true });
         return true;
